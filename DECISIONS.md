@@ -48,3 +48,6 @@ Themes are **not** separate git branches. There is a single `main` branch; each 
 
 ### Tabbed layout (canvas left, sidebar right)
 The canvas sits on the left; a right-side sidebar holds two tabs: **Game** (score/level/destroy + New Game/Continue buttons) and **Settings** (all settings). The Game tab is the default. This keeps the play area uncluttered and groups controls vs. configuration.
+
+### GitHub Pages deployment via a `prod` branch
+On every push to `main`, `.github/workflows/deploy.yml` copies `src/` to a `prod` branch (force-push) and GitHub Pages serves from `prod` at path `/`. This mirrors the `zeeshanalikhan15.github.io` repo's approach, minus the build step (the game is static HTML/JS/CSS). The public URL is `https://zeeshanalikhan15.github.io/blockade-game/`.

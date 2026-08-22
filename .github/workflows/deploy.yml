@@ -1,0 +1,37 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Deploy src/ to prod branch
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+          # Copy the static site (contents of src/) into a clean staging dir.
+          rm -rf /tmp/pages && mkdir -p /tmp/pages
+          cp -r src/. /tmp/pages/
+          touch /tmp/pages/.nojekyll
+
+          # Push the staging dir as the 'prod' branch.
+          cd /tmp/pages
+          git init -q
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -q -m "Deploy to GitHub Pages" || echo "No changes to commit"
+          git remote add origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}"
+          git branch -M prod
+          git push --force origin prod
