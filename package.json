@@ -1,0 +1,21 @@
+{
+  "name": "blockade-game",
+  "version": "1.0.0",
+  "description": "A simple blockade game implemented in JavaScript for the browser.",
+  "main": "src/app.js",
+  "scripts": {
+    "start": "live-server src"
+  },
+  "keywords": [
+    "blockade",
+    "game",
+    "javascript",
+    "browser"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {
+    "live-server": "^1.2.1"
+  }
+}
