@@ -28,3 +28,4 @@ Chronological record of every activity performed on this repo. Append in sequenc
 22. **Restructured the UI into two tabs** — canvas moved to the left, with a right-side sidebar holding a "Game" tab (score/level/destroy + New Game/Continue) and a "Settings" tab (all settings).
 23. **Centered the title over the grid** — moved the `<h1>` inside the left column so it centers above the canvas rather than the whole page.
 24. **Set up GitHub Pages deployment** — added `.github/workflows/deploy.yml` that copies `src/` to a `prod` branch on every push to `main`, and configured Pages to serve from `prod` (mirroring the `zeeshanalikhan15.github.io` repo).
+25. **Added a "Play it live" link** to the README pointing at the GitHub Pages URL.
