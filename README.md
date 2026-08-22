@@ -1,5 +1,7 @@
 # Blockade Game
 
+▶ **Play it live:** [zeeshanalikhan15.github.io/blockade-game](https://zeeshanalikhan15.github.io/blockade-game/)
+
 A small browser-based grid game with a **settings-based theme system**. Pilot through a grid, avoid obstacles, and collect pickups — with switchable visual + audio themes.
 
 ## Themes
