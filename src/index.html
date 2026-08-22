@@ -8,59 +8,73 @@
 </head>
 <body>
     <h1 id="gameTitle">Blockade Game</h1>
-    <canvas id="gameCanvas" width="800" height="600"></canvas>
 
-    <div id="hud">
-        <span id="score" class="stat">Score: 0</span>
-        <span id="level" class="stat">Level: 1</span>
-        <span id="power" class="stat">Destroy: 0</span>
-    </div>
+    <div id="layout">
+        <div id="left">
+            <canvas id="gameCanvas" width="800" height="600"></canvas>
+            <div id="legend"></div>
+        </div>
 
-    <div id="controls">
-        <button id="startButton" class="button">New Game</button>
-        <button id="continueButton" class="button" style="display:none">Continue</button>
-    </div>
+        <div id="sidebar">
+            <div class="tabs">
+                <button class="tab active" data-tab="game">Game</button>
+                <button class="tab" data-tab="settings">Settings</button>
+            </div>
 
-    <div id="legend"></div>
+            <div id="tab-game" class="tab-panel">
+                <div id="hud">
+                    <span id="score" class="stat">Score: 0</span>
+                    <span id="level" class="stat">Level: 1</span>
+                    <span id="power" class="stat">Destroy: 0</span>
+                </div>
+                <div id="controls">
+                    <button id="startButton" class="button">New Game</button>
+                    <button id="continueButton" class="button" style="display:none">Continue</button>
+                </div>
+            </div>
 
-    <div id="settings">
-        <h2>Settings <span class="hint">(auto-saved · apply on New Game)</span></h2>
-        <label>Theme
-            <select id="theme">
-                <option value="classic">Classic</option>
-                <option value="space">Space</option>
-            </select>
-        </label>
-        <label>Mute sounds
-            <input type="checkbox" id="mute">
-        </label>
-        <label>Music volume
-            <input type="range" id="musicVolume" min="0" max="100" value="50">
-        </label>
-        <label>Change background color each level
-            <input type="checkbox" id="colorChange" checked>
-        </label>
-        <label>Score between waves
-            <input type="number" id="scorePerWave" value="300" min="50" step="50">
-        </label>
-        <label>Obstacles per wave
-            <input type="number" id="greysPerWave" value="5" min="1" max="100">
-        </label>
-        <label>Total levels
-            <input type="number" id="maxLevels" value="10" min="1" max="50">
-        </label>
-        <label>Pickups on screen
-            <input type="number" id="maxGreens" value="3" min="1" max="20">
-        </label>
-        <label>Bonus frequency (seconds)
-            <input type="number" id="bonusInterval" value="8" min="2" max="120">
-        </label>
-        <label>Power-up: levels between spawns
-            <input type="number" id="yellowLevelGap" value="5" min="1" max="50">
-        </label>
-        <label>Power-up: max destroy charges
-            <input type="number" id="maxPowerForYellow" value="10" min="0" max="100">
-        </label>
+            <div id="tab-settings" class="tab-panel" style="display:none">
+                <div id="settings">
+                    <h2>Settings <span class="hint">(auto-saved · apply on New Game)</span></h2>
+                    <label>Theme
+                        <select id="theme">
+                            <option value="classic">Classic</option>
+                            <option value="space">Space</option>
+                        </select>
+                    </label>
+                    <label>Mute sounds
+                        <input type="checkbox" id="mute">
+                    </label>
+                    <label>Music volume
+                        <input type="range" id="musicVolume" min="0" max="100" value="50">
+                    </label>
+                    <label>Change background color each level
+                        <input type="checkbox" id="colorChange" checked>
+                    </label>
+                    <label>Score between waves
+                        <input type="number" id="scorePerWave" value="300" min="50" step="50">
+                    </label>
+                    <label>Obstacles per wave
+                        <input type="number" id="greysPerWave" value="5" min="1" max="100">
+                    </label>
+                    <label>Total levels
+                        <input type="number" id="maxLevels" value="10" min="1" max="50">
+                    </label>
+                    <label>Pickups on screen
+                        <input type="number" id="maxGreens" value="3" min="1" max="20">
+                    </label>
+                    <label>Bonus frequency (seconds)
+                        <input type="number" id="bonusInterval" value="8" min="2" max="120">
+                    </label>
+                    <label>Power-up: levels between spawns
+                        <input type="number" id="yellowLevelGap" value="5" min="1" max="50">
+                    </label>
+                    <label>Power-up: max destroy charges
+                        <input type="number" id="maxPowerForYellow" value="10" min="0" max="100">
+                    </label>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script src="themes/classic.js"></script>

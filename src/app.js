@@ -39,6 +39,7 @@ function init() {
     muted = document.getElementById('mute').checked;
     musicVol = clampInt(input('musicVolume'), 0, 100, 50);
     setTheme(document.getElementById('theme').value);
+    setupTabs();
     document.addEventListener('keydown', handleKeyPress);
     startButton.addEventListener('click', startGame);
     continueButton.addEventListener('click', continueGame);
@@ -89,6 +90,18 @@ function renderLegend(entries) {
         item.appendChild(dot);
         item.appendChild(document.createTextNode(' ' + e.label));
         legendEl.appendChild(item);
+    });
+}
+
+// Switch between the Game and Settings tabs.
+function setupTabs() {
+    document.querySelectorAll('.tab').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            document.querySelectorAll('.tab-panel').forEach(p => p.style.display = 'none');
+            document.getElementById('tab-' + btn.dataset.tab).style.display = 'block';
+        });
     });
 }
 

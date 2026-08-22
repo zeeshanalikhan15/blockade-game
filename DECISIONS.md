@@ -45,3 +45,6 @@ Settings are auto-saved to the browser's `localStorage` whenever an input change
 
 ### Single `main` branch + settings-based themes
 Themes are **not** separate git branches. There is a single `main` branch; each theme's look and sound lives in its own file under `src/themes/` (e.g. `classic.js`, `space.js`), and the active theme is chosen via a persisted "Theme" setting. The shared engine in `app.js` holds all game logic and delegates rendering + audio to the active theme object. Adding a theme = adding a file under `src/themes/` and an entry in the Theme dropdown.
+
+### Tabbed layout (canvas left, sidebar right)
+The canvas sits on the left; a right-side sidebar holds two tabs: **Game** (score/level/destroy + New Game/Continue buttons) and **Settings** (all settings). The Game tab is the default. This keeps the play area uncluttered and groups controls vs. configuration.
