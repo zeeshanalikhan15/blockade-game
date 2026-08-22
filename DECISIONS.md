@@ -42,3 +42,6 @@ On game over, the player can respawn at the level they died at by paying a fixed
 
 ### Settings persist via localStorage
 Settings are auto-saved to the browser's `localStorage` whenever an input changes, and restored on page load. This survives refreshes and server restarts, but is per-browser/origin — not a shared file on disk. A shared `settings.json` + a small Node server is a possible future upgrade if cross-browser persistence is needed.
+
+### Single `main` branch + settings-based themes
+Themes are **not** separate git branches. There is a single `main` branch; each theme's look and sound lives in its own file under `src/themes/` (e.g. `classic.js`, `space.js`), and the active theme is chosen via a persisted "Theme" setting. The shared engine in `app.js` holds all game logic and delegates rendering + audio to the active theme object. Adding a theme = adding a file under `src/themes/` and an entry in the Theme dropdown.

@@ -11,40 +11,34 @@ const COLS = 20;
 const ROWS = 15;
 const CELL = 40;
 
-const COLORS = {
-    player: '#007bff',
-    obstacle: '#333333',
-    item: '#28a745',
-    bonusBlue: '#00bfff',
-    bonusYellow: '#ffc107',
-};
+const SETTINGS_KEY = 'blockadeGame.settings';
 
-// Pastel grid tints, cycled per level. Kept light so the pieces never blend in.
-const GRID_COLORS = ['#e6e6e6', '#d6e4f0', '#f0dcd6', '#dcf0dc', '#f0ead6', '#e4dcf0', '#d6f0ec', '#f0dcec'];
-
-const SETTINGS_KEY = 'blockadeGame.settings'; // localStorage key for persisted settings
-
-let settings;      // loaded from the settings form at the start of each game
+let activeTheme;   // the currently selected theme object (from window.THEMES)
+let settings;      // numeric gameplay settings, loaded at the start of each game
 let player;        // { x, y } in grid coordinates
 let obstacles;     // Set of "x,y" keys
-let items;         // Set of "x,y" keys (green collectibles)
-let blueBonus;     // { x, y } or null — +50 points
-let yellowBonus;   // { x, y } or null — 2-3 destroy charges
+let items;         // Set of "x,y" keys
+let blueBonus;     // { x, y } or null
+let yellowBonus;   // { x, y } or null
 let score;
 let level;
-let power;         // remaining "destroy a grey" charges
-let yellowAvailableAt; // the level at which the yellow bonus becomes available again
+let power;         // remaining "destroy an obstacle" charges
+let yellowAvailableAt;
 let nextWaveScore;
 let tick;
 let running;
 let intervalId;
 let startTime;
 
+let dir = { dx: 0, dy: -1 };
+
 function init() {
     canvas.width = COLS * CELL;
     canvas.height = ROWS * CELL;
     loadSettingsFromStorage();
     muted = document.getElementById('mute').checked;
+    musicVol = clampInt(input('musicVolume'), 0, 100, 50);
+    setTheme(document.getElementById('theme').value);
     document.addEventListener('keydown', handleKeyPress);
     startButton.addEventListener('click', startGame);
     continueButton.addEventListener('click', continueGame);
@@ -58,7 +52,44 @@ function init() {
         saveSettingsToStorage();
         if (!muted) getAudio();
     });
+    // Music volume applies immediately.
+    document.getElementById('musicVolume').addEventListener('input', function () {
+        musicVol = clampInt(parseInt(this.value, 10), 0, 100, 50);
+    });
+    // Theme switch applies immediately.
+    document.getElementById('theme').addEventListener('change', function () {
+        setTheme(this.value);
+        saveSettingsToStorage();
+    });
     startGame();
+}
+
+// Select the active theme and update title + legend.
+function setTheme(id) {
+    activeTheme = window.THEMES[id] || window.THEMES.classic;
+    document.title = activeTheme.name;
+    document.getElementById('gameTitle').textContent = activeTheme.name;
+    renderLegend(activeTheme.legend);
+    if (audioCtx) {
+        stopMusic();
+        if (!muted) startMusic();
+    }
+}
+
+function renderLegend(entries) {
+    const legendEl = document.getElementById('legend');
+    legendEl.innerHTML = '';
+    entries.forEach(e => {
+        const item = document.createElement('span');
+        item.className = 'legend-item';
+        const dot = document.createElement('span');
+        dot.className = 'dot';
+        dot.style.backgroundColor = e.color;
+        if (e.round) dot.style.borderRadius = '50%';
+        item.appendChild(dot);
+        item.appendChild(document.createTextNode(' ' + e.label));
+        legendEl.appendChild(item);
+    });
 }
 
 // Read the settings form into the `settings` object.
@@ -85,7 +116,7 @@ function clampInt(n, min, max, fallback) {
 
 // Persist settings to localStorage so they survive refreshes and server restarts.
 function saveSettingsToStorage() {
-    const ids = ['scorePerWave', 'greysPerWave', 'maxLevels', 'maxGreens', 'bonusInterval', 'yellowLevelGap', 'maxPowerForYellow'];
+    const ids = ['scorePerWave', 'greysPerWave', 'maxLevels', 'maxGreens', 'bonusInterval', 'yellowLevelGap', 'maxPowerForYellow', 'musicVolume', 'theme'];
     const data = {};
     ids.forEach(id => { data[id] = document.getElementById(id).value; });
     data.mute = document.getElementById('mute').checked;
@@ -119,8 +150,7 @@ function startGame() {
 }
 
 // Respawn from the level you died at, paying a fixed 1/3 of your score.
-// The board stays the same; the player stays on their last safe cell
-// (one step before the collision, since position isn't advanced on death).
+// The board stays the same; the player stays on their last safe cell.
 function continueGame() {
     const cost = Math.floor(score / 3);
     if (cost < 1) return;
@@ -146,6 +176,7 @@ function startGameAt(startLevel, startScore) {
     power = 0;
     yellowAvailableAt = startLevel + settings.yellowLevelGap;
     nextWaveScore = score + settings.scorePerWave;
+    dir = { dx: 0, dy: -1 };
     tick = 0;
     running = true;
     startTime = Date.now();
@@ -179,24 +210,19 @@ function updateGame() {
     if (!running) return;
     tick++;
 
-    // Spawn a green collectible every ~0.8s, up to maxGreens on screen.
     if (tick % 8 === 0 && items.size < settings.maxGreens) {
         spawnAtRandom(items);
     }
 
-    // Blue bonus: spawns on a fixed interval, at most one on screen.
     const bonusTicks = settings.bonusInterval * 10;
     if (!blueBonus && tick % bonusTicks === 0) {
         spawnBlueBonus();
     }
 
-    // Yellow bonus: independent of blue, spawns once per yellowLevelGap levels,
-    // and only while the player is under the max destroy-charge cap.
     if (!yellowBonus && level >= yellowAvailableAt && power <= settings.maxPowerForYellow) {
         spawnYellowBonus();
     }
 
-    // Each time the score crosses a threshold, spawn a new wave of obstacles.
     if (score >= nextWaveScore && level <= settings.maxLevels) {
         spawnWave();
     }
@@ -209,7 +235,6 @@ function randomEmptyCell() {
     for (let i = 0; i < 50; i++) {
         const x = Math.floor(Math.random() * COLS);
         const y = Math.floor(Math.random() * ROWS);
-        // Keep a clear 3x3 area around the player so nothing pops up in its path.
         if (Math.abs(x - player.x) <= 1 && Math.abs(y - player.y) <= 1) continue;
         const k = key(x, y);
         if (obstacles.has(k) || items.has(k)) continue;
@@ -227,7 +252,6 @@ function spawnAtRandom(set) {
     return true;
 }
 
-// Spawn a wave of obstacles (grey blocks).
 function spawnWave() {
     const count = settings.greysPerWave;
     let spawned = 0;
@@ -238,7 +262,7 @@ function spawnWave() {
     }
     level++;
     nextWaveScore += settings.scorePerWave;
-    soundLevelUp();
+    activeTheme.sound('levelUp');
 }
 
 function spawnBlueBonus() {
@@ -279,17 +303,16 @@ function movePlayer(dx, dy) {
     const nx = player.x + dx;
     const ny = player.y + dy;
 
-    // Walls: block can't leave the grid.
     if (nx < 0 || nx >= COLS || ny < 0 || ny >= ROWS) return;
 
     const k = key(nx, ny);
 
-    // Hitting a grey: destroy it with a charge, otherwise game over.
+    // Hitting an obstacle: destroy it with a charge, otherwise game over.
     if (obstacles.has(k)) {
         if (power > 0) {
             obstacles.delete(k);
             power--;
-            soundBlast();
+            activeTheme.sound('blast');
         } else {
             endGame();
             return;
@@ -298,25 +321,24 @@ function movePlayer(dx, dy) {
 
     player.x = nx;
     player.y = ny;
-    soundMove();
+    dir = { dx, dy };
+    activeTheme.sound('move');
 
-    // Collect a green point item.
     if (items.has(k)) {
         items.delete(k);
         score += 10;
-        soundGreen();
+        activeTheme.sound('green');
     }
 
-    // Collect a bonus (blue and yellow are independent).
     if (blueBonus && blueBonus.x === nx && blueBonus.y === ny) {
         score += 50;
         blueBonus = null;
-        soundBlue();
+        activeTheme.sound('blue');
     }
     if (yellowBonus && yellowBonus.x === nx && yellowBonus.y === ny) {
-        power += 2 + Math.floor(Math.random() * 2); // 2 or 3 charges
+        power += 2 + Math.floor(Math.random() * 2);
         yellowBonus = null;
-        soundYellow();
+        activeTheme.sound('yellow');
     }
 
     draw();
@@ -326,72 +348,24 @@ function endGame() {
     running = false;
     clearInterval(intervalId);
     stopMusic();
-    soundGameOver();
+    activeTheme.sound('gameOver');
     showContinue();
     draw();
 }
 
-function cellBackgroundColor() {
-    if (!document.getElementById('colorChange').checked) return '#ffffff';
-    return GRID_COLORS[(level - 1) % GRID_COLORS.length];
-}
-
-// Return `hex` darkened by multiplying each channel by `factor` (0..1).
-function darkenColor(hex, factor) {
-    const r = parseInt(hex.slice(1, 3), 16);
-    const g = parseInt(hex.slice(3, 5), 16);
-    const b = parseInt(hex.slice(5, 7), 16);
-    return '#' + [r, g, b]
-        .map(v => Math.round(v * factor).toString(16).padStart(2, '0'))
-        .join('');
-}
-
 function draw() {
-    ctx.fillStyle = cellBackgroundColor();
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    drawGrid();
-
-    // Obstacles.
-    obstacles.forEach(k => {
-        const [x, y] = k.split(',').map(Number);
-        ctx.fillStyle = COLORS.obstacle;
-        ctx.fillRect(x * CELL, y * CELL, CELL, CELL);
+    activeTheme.render(ctx, {
+        player, dir, obstacles, items, blueBonus, yellowBonus,
+        level,
+        colorChangeEnabled: document.getElementById('colorChange').checked,
+        cols: COLS, rows: ROWS, cell: CELL,
     });
-
-    // Green collectibles (small squares).
-    items.forEach(k => {
-        const [x, y] = k.split(',').map(Number);
-        ctx.fillStyle = COLORS.item;
-        ctx.fillRect(x * CELL + 8, y * CELL + 8, CELL - 16, CELL - 16);
-    });
-
-    // Blue bonus (circle).
-    if (blueBonus) {
-        ctx.fillStyle = COLORS.bonusBlue;
-        ctx.beginPath();
-        ctx.arc(blueBonus.x * CELL + CELL / 2, blueBonus.y * CELL + CELL / 2, CELL / 2 - 6, 0, Math.PI * 2);
-        ctx.fill();
-    }
-
-    // Yellow bonus (circle).
-    if (yellowBonus) {
-        ctx.fillStyle = COLORS.bonusYellow;
-        ctx.beginPath();
-        ctx.arc(yellowBonus.x * CELL + CELL / 2, yellowBonus.y * CELL + CELL / 2, CELL / 2 - 6, 0, Math.PI * 2);
-        ctx.fill();
-    }
-
-    // Player.
-    ctx.fillStyle = COLORS.player;
-    ctx.fillRect(player.x * CELL, player.y * CELL, CELL, CELL);
 
     updateHud();
 
-    // Game over overlay.
     if (!running) {
         const secs = Math.floor((Date.now() - startTime) / 1000);
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.fillStyle = '#fff';
         ctx.textAlign = 'center';
@@ -404,23 +378,6 @@ function draw() {
     }
 }
 
-function drawGrid() {
-    ctx.strokeStyle = darkenColor(cellBackgroundColor(), 0.85);
-    ctx.lineWidth = 1;
-    for (let x = 0; x <= COLS; x++) {
-        ctx.beginPath();
-        ctx.moveTo(x * CELL, 0);
-        ctx.lineTo(x * CELL, canvas.height);
-        ctx.stroke();
-    }
-    for (let y = 0; y <= ROWS; y++) {
-        ctx.beginPath();
-        ctx.moveTo(0, y * CELL);
-        ctx.lineTo(canvas.width, y * CELL);
-        ctx.stroke();
-    }
-}
-
 function updateHud() {
     scoreEl.textContent = 'Score: ' + score;
     levelEl.textContent = 'Level: ' + Math.min(level, settings.maxLevels);
@@ -428,16 +385,14 @@ function updateHud() {
 }
 
 // ---------------------------------------------------------------------------
-// Sound (Web Audio API — synthesized, no external files)
+// Audio (Web Audio API — synthesized; the active theme provides the sounds)
 // ---------------------------------------------------------------------------
 
 let muted = false;
+let musicVol = 50; // background music volume (0-100)
 let audioCtx;
 let musicInterval = null;
 let musicIndex = 0;
-
-const MUSIC_NOTES = [261.63, 329.63, 392.00, 329.63, 293.66, 349.23, 440.00, 349.23]; // gentle C–Am loop
-const MUSIC_STEP_MS = 320;
 
 function getAudio() {
     if (!audioCtx) {
@@ -493,15 +448,15 @@ function playNoise({ duration = 0.2, gain = 0.3, when = 0 }) {
     src.start(t0);
 }
 
-// Background music: a soft looping arpeggio.
 function startMusic() {
     if (musicInterval) return;
     musicInterval = setInterval(() => {
         if (muted) return;
-        const freq = MUSIC_NOTES[musicIndex % MUSIC_NOTES.length];
+        const notes = activeTheme.music.notes;
+        const freq = notes[musicIndex % notes.length];
         musicIndex++;
         playMusicNote(freq);
-    }, MUSIC_STEP_MS);
+    }, activeTheme.music.stepMs);
 }
 
 function stopMusic() {
@@ -512,62 +467,21 @@ function stopMusic() {
 }
 
 function playMusicNote(freq) {
+    const peak = activeTheme.music.gain * (musicVol / 100);
+    if (peak <= 0) return;
     const ac = getAudio();
     if (!ac) return;
     const t0 = ac.currentTime;
     const osc = ac.createOscillator();
     const g = ac.createGain();
-    osc.type = 'triangle';
+    osc.type = activeTheme.music.type;
     osc.frequency.value = freq;
     g.gain.setValueAtTime(0.0001, t0);
-    g.gain.exponentialRampToValueAtTime(0.04, t0 + 0.03);
-    g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.26);
+    g.gain.exponentialRampToValueAtTime(peak, t0 + 0.03);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.28);
     osc.connect(g).connect(ac.destination);
     osc.start(t0);
-    osc.stop(t0 + 0.28);
-}
-
-// Green +10: a short "coin" blip.
-function soundGreen() {
-    playTone({ freq: 880, duration: 0.08, type: 'square', gain: 0.12 });
-    playTone({ freq: 1318.5, duration: 0.12, type: 'square', gain: 0.12, when: 0.07 });
-}
-
-// Blue +50: a rising three-note chime.
-function soundBlue() {
-    playTone({ freq: 523.25, duration: 0.09, type: 'triangle', gain: 0.15 });
-    playTone({ freq: 659.25, duration: 0.09, type: 'triangle', gain: 0.15, when: 0.08 });
-    playTone({ freq: 783.99, duration: 0.14, type: 'triangle', gain: 0.15, when: 0.16 });
-}
-
-// Yellow (destroy power): a rising "charge" sweep.
-function soundYellow() {
-    playTone({ freq: 300, endFreq: 1200, duration: 0.35, type: 'sawtooth', gain: 0.15 });
-}
-
-// Destroying a grey: noise blast + a low thump.
-function soundBlast() {
-    playNoise({ duration: 0.25, gain: 0.3 });
-    playTone({ freq: 120, endFreq: 50, duration: 0.2, type: 'sawtooth', gain: 0.22 });
-}
-
-// Level up: a low rising "walls growing" rumble.
-function soundLevelUp() {
-    playTone({ freq: 80, endFreq: 160, duration: 0.4, type: 'sawtooth', gain: 0.18 });
-    playNoise({ duration: 0.3, gain: 0.1, when: 0.05 });
-}
-
-// Movement: a very low, quiet tick.
-function soundMove() {
-    playTone({ freq: 110, duration: 0.04, type: 'sine', gain: 0.07 });
-}
-
-// Classic descending "game over" tune.
-function soundGameOver() {
-    playTone({ freq: 392, duration: 0.18, type: 'square', gain: 0.12 });
-    playTone({ freq: 329.63, duration: 0.18, type: 'square', gain: 0.12, when: 0.18 });
-    playTone({ freq: 261.63, duration: 0.18, type: 'square', gain: 0.12, when: 0.36 });
-    playTone({ freq: 196, duration: 0.4, type: 'square', gain: 0.12, when: 0.54 });
+    osc.stop(t0 + 0.3);
 }
 
 window.onload = init;

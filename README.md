@@ -1,49 +1,36 @@
 # Blockade Game
 
-## Overview
-Blockade Game is a simple browser-based game where players navigate a block through a grid while avoiding obstacles. The objective is to survive as long as possible while collecting points.
+A small browser-based grid game with a **settings-based theme system**. Pilot through a grid, avoid obstacles, and collect pickups — with switchable visual + audio themes.
 
-## Project Structure
+## Themes
+
+Themes live in `src/themes/` and are selected at runtime via the **Theme** setting (persisted):
+
+- **Classic** — the original "Blockade Game" look: colored blocks, light background, arcade sounds.
+- **Space Saver** — pilot a spaceship through a starfield, rescue astronauts, dodge asteroids, collect energy orbs and armory shields, with galactic sounds.
+
+Each theme is a single object exposing `name`, `legend`, `render(ctx, state)`, `sound(name)`, and `music` (notes/tempo/tone). The shared engine in `src/app.js` delegates all visuals and audio to the active theme.
+
+## How to play
+
+- Move with the **arrow keys** (or WASD).
+- **Collect pickups** (+10) and **bonuses** (+50).
+- Grab a **power-up** to gain charges that **destroy obstacles** instead of crashing.
+- Hit an obstacle without a charge and it's game over.
+
+## Getting started
+
+```bash
+npm install
+npm start
 ```
-blockade-game
-├── src
-│   ├── index.html       # Main HTML document for the game
-│   ├── style.css        # Styles for the game
-│   └── app.js           # JavaScript code for game logic
-├── package.json         # npm configuration file
-└── README.md            # Project documentation
-```
 
-## Getting Started
+`npm start` serves the `src/` folder with live-server (default http://127.0.0.1:8080).
 
-### Prerequisites
-- Node.js and npm installed on your machine.
+## Configuration
 
-### Installation
-1. Clone the repository:
-   ```
-   git clone <repository-url>
-   ```
-2. Navigate to the project directory:
-   ```
-   cd blockade-game
-   ```
-3. Install dependencies (if any):
-   ```
-   npm install
-   ```
-
-### Running the Game
-To start the game, you can open the `src/index.html` file in your web browser. Alternatively, you can set up a local server using a tool like `http-server` or any other static server.
-
-### How to Play
-- Use the arrow keys to move the block.
-- Avoid the obstacles that appear on the grid.
-- Collect points to increase your score.
-- The game ends when you collide with an obstacle.
-
-## Contributing
-Feel free to submit issues or pull requests if you have suggestions or improvements for the game.
+The in-game **Settings** panel (auto-saved to your browser) tunes obstacle waves, score thresholds, pickup count, bonus frequency, music volume, and the active theme.
 
 ## License
-This project is licensed under the MIT License.
+
+MIT

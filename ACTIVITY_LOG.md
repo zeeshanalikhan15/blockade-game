@@ -22,3 +22,6 @@ Chronological record of every activity performed on this repo. Append in sequenc
 16. **Refined audio & colors** — background music stops on game over with a descending game-over sound; cell *background* (not grid lines) cycles color per level, behind a persisted enable/disable toggle.
 17. **Tinted grid lines** — grid lines are now a darkened tint of the cell background (85%), so they darken along with the background.
 18. **Added a "continue" option** — on game over, respawn at the level you died at with the *board unchanged*, on your last safe cell (the step before the collision), paying a fixed 1/3 of your score (floored); offered only while the cost is at least 1.
+19. **Created a "Space Saver" theme** (spaceship, astronauts, asteroids, energy orbs, armory shields, galactic starfield, galactic sounds) — initially on a temporary branch.
+20. **Loudened + space-ified sounds** and added a persisted "Music volume" slider.
+21. **Refactored to a settings-based theme system on a single `main` branch** — extracted "Classic" and "Space" into `src/themes/`, added a "Theme" selector, and deleted the abandoned theme branch.
