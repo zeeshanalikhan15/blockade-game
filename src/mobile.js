@@ -200,11 +200,10 @@ function drawEdgeHints(ctx) {
     if (VIEW.camY < worldH - VIEW.h - 1) fade(0, VIEW.h, 0, VIEW.h - f, 0, VIEW.h - f, VIEW.w, f);
 }
 
-// Point the way to a collectible only while it is off-screen (phone view).
-// Green pick-ups, the blue bonus, and the yellow bonus are all worth seeking,
-// so whichever of those is nearest — and currently outside the window — gets a
-// small pulsing chevron beside the player. Once everything is on-screen the
-// hint hides.
+// Point the way to food only when none of it is on screen (phone view). Green
+// pick-ups, the blue bonus, and the yellow bonus all count: if any of them is
+// visible the hint hides, and only when *nothing* is in view does a chevron
+// appear, facing the nearest one.
 function drawPickupHint(ctx) {
     if (!VIEW.camera || !running || paused) return;
 
@@ -224,21 +223,24 @@ function drawPickupHint(ctx) {
     const px = (player.x + 0.5) * cell - VIEW.camX;
     const py = (player.y + 0.5) * cell - VIEW.camY;
 
-    // Nearest target whose centre is outside the visible window.
-    let best = null;
-    let bestD = Infinity;
+    // Find the nearest target and remember whether any target is in view.
+    let nearest = null;
+    let nearestD = Infinity;
+    let anyVisible = false;
     targets.forEach(function (t) {
         const tx = (t.x + 0.5) * cell - VIEW.camX;
         const ty = (t.y + 0.5) * cell - VIEW.camY;
-        if (tx >= 0 && tx <= VIEW.w && ty >= 0 && ty <= VIEW.h) return; // on-screen
+        if (tx >= 0 && tx <= VIEW.w && ty >= 0 && ty <= VIEW.h) anyVisible = true;
         const dx = tx - px;
         const dy = ty - py;
         const d = dx * dx + dy * dy;
-        if (d < bestD) { bestD = d; best = { tx, ty }; }
+        if (d < nearestD) { nearestD = d; nearest = { tx, ty }; }
     });
-    if (!best) return;
 
-    const ang = Math.atan2(best.ty - py, best.tx - px);
+    // Only show the hint while nothing to eat is on screen.
+    if (anyVisible || !nearest) return;
+
+    const ang = Math.atan2(nearest.ty - py, nearest.tx - px);
     const off = CELL * s * 0.85;
     const cx = px + Math.cos(ang) * off;
     const cy = py + Math.sin(ang) * off;

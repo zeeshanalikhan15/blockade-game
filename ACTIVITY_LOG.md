@@ -44,3 +44,4 @@ Chronological record of every activity performed on this repo. Append in sequenc
 30. **Refined the hint** — it now only appears when a collectible is *off-screen* (hidden once everything is visible), and it tracks green pick-ups, the blue bonus, and the yellow bonus alike.
 31. **Defaulted the theme to Space** — the Theme selector now lists "Space" first, so first-time visitors (no saved settings) start on the Space theme.
 32. **Centred the on-screen controls** — the d-pad now sits bottom-centre instead of the lower-left corner.
+33. **Fixed the pick-up hint rule** — the chevron now appears only while *nothing* edible is on screen; as soon as any collectible (green/blue/yellow) is visible it disappears (previously it could point to an off-screen item while another was already visible).
