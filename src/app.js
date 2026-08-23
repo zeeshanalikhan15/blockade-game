@@ -418,6 +418,7 @@ function draw() {
     ctx.restore();
 
     drawEdgeHints(ctx);
+    drawPickupHint(ctx);
     updateHud();
 
     if (paused) {

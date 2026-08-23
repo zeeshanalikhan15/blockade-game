@@ -225,9 +225,9 @@ canvas {
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: rgba(58, 91, 214, 0.22);
-    color: #dfe4ff;
-    border: 1px solid #2a2a44;
+    background-color: rgba(58, 91, 214, 0.16);
+    color: rgba(230, 235, 255, 0.9);
+    border: 1px solid rgba(130, 140, 205, 0.5);
     border-radius: 14px;
     font-size: 20px;
     cursor: pointer;
@@ -236,7 +236,7 @@ canvas {
 }
 
 .dbtn:active {
-    background-color: rgba(58, 91, 214, 0.65);
+    background-color: rgba(58, 91, 214, 0.6);
 }
 
 .dbtn.up { grid-area: 1 / 2; }
@@ -323,28 +323,33 @@ body.touch-ui #legend {
     font-size: 12px;
 }
 
+/* Float the pad over the board (translucent, racing-game style) instead of
+   reserving a strip below it, so the play area keeps the full height. The
+   container ignores touches; only the buttons themselves are tappable. */
 body.touch-ui #touchControls {
     display: flex;
-    flex: 0 0 auto;
-    justify-content: center;
-    padding: 10px 0 14px;
-}
-
-/* Phone on its side: float the pad over the board instead of below it. */
-body.touch-ui.landscape #touchControls {
     position: fixed;
     left: 0;
-    bottom: env(safe-area-inset-bottom);
-    padding: 0 0 8px 10px;
-    justify-content: flex-start;
-    pointer-events: none;
+    bottom: 0;
     z-index: 10;
+    justify-content: flex-start;
+    padding: 0 0 calc(14px + env(safe-area-inset-bottom)) 12px;
+    pointer-events: none;
+}
+
+body.touch-ui #dpad {
+    pointer-events: auto;
+    opacity: 0.55;
+    transition: opacity 0.15s ease;
+}
+
+body.touch-ui #dpad:active,
+body.touch-ui #dpad:focus-within {
+    opacity: 1;
 }
 
 body.touch-ui.landscape #dpad {
     --dbtn: 50px;
-    opacity: 0.6;
-    pointer-events: auto;
 }
 
 body.touch-ui.landscape #gameTitle {

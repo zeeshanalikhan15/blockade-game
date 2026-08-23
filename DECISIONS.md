@@ -70,3 +70,6 @@ On touch UI the sidebar is a slide-in drawer (☰ in a compact top bar), so scor
 
 ### On-screen pilot controls
 A three-by-three d-pad (press moves once, holding auto-repeats like key auto-repeat, releasing stops) plus swipe-to-move on the canvas, and tap-to-restart after a game over. In landscape the d-pad floats over the board's lower-left corner instead of reserving vertical space.
+
+### Floating controls & pick-up hint
+The d-pad is a **translucent overlay on the board** (racing-game style) rather than reserving a strip below it, so the play area keeps the full height — the phone view now shows all 15 rows. It turns opaque on press so it stays findable without hiding the game. Because off-screen pick-ups are easy to lose in the camera view, a **pulsing chevron** beside the player points to the nearest pick-up (the same green as the pick-up, with a dark halo so it reads on both the light Classic and dark Space boards).

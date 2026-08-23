@@ -200,6 +200,60 @@ function drawEdgeHints(ctx) {
     if (VIEW.camY < worldH - VIEW.h - 1) fade(0, VIEW.h, 0, VIEW.h - f, 0, VIEW.h - f, VIEW.w, f);
 }
 
+// Point the way to the nearest pick-up when the board is bigger than the
+// window (phone view). Green pick-ups ("astronauts") are easy to lose off the
+// edge, so draw a small pulsing chevron beside the player facing the nearest.
+function drawPickupHint(ctx) {
+    if (!VIEW.camera || !running || paused) return;
+    if (typeof items === 'undefined' || items.size === 0) return;
+
+    let best = null;
+    let bestD = Infinity;
+    items.forEach(function (k) {
+        const xy = k.split(',').map(Number);
+        const dx = xy[0] - player.x;
+        const dy = xy[1] - player.y;
+        const d = dx * dx + dy * dy;
+        if (d < bestD) { bestD = d; best = { x: xy[0], y: xy[1] }; }
+    });
+    if (!best) return;
+
+    const s = VIEW.scale;
+    const px = (player.x + 0.5) * CELL * s - VIEW.camX;
+    const py = (player.y + 0.5) * CELL * s - VIEW.camY;
+    const ang = Math.atan2(
+        (best.y + 0.5) * CELL * s - VIEW.camY - py,
+        (best.x + 0.5) * CELL * s - VIEW.camX - px
+    );
+
+    const off = CELL * s * 0.85;
+    const cx = px + Math.cos(ang) * off;
+    const cy = py + Math.sin(ang) * off;
+    const r = 9;
+    const pulse = 0.7 + 0.3 * Math.sin(tick / 2.2);
+
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(ang);
+    ctx.globalAlpha = pulse;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+
+    // Dark halo first so the chevron reads on both light and dark boards.
+    ctx.strokeStyle = 'rgba(10, 10, 20, 0.7)';
+    ctx.lineWidth = 6;
+    ctx.beginPath();
+    ctx.moveTo(r, 0); ctx.lineTo(0, r);
+    ctx.moveTo(r, 0); ctx.lineTo(0, -r);
+    ctx.stroke();
+
+    ctx.strokeStyle = '#3df07c';
+    ctx.lineWidth = 2.5;
+    ctx.stroke();
+
+    ctx.restore();
+}
+
 // ---------------------------------------------------------------------------
 // Touch input — d-pad and swipes
 // ---------------------------------------------------------------------------
