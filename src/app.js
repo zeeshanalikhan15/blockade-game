@@ -5,6 +5,9 @@ const levelEl = document.getElementById('level');
 const powerEl = document.getElementById('power');
 const startButton = document.getElementById('startButton');
 const continueButton = document.getElementById('continueButton');
+const mobileNewGame = document.getElementById('mobileNewGame');
+const mobileContinue = document.getElementById('mobileContinue');
+const gameOverStats = document.getElementById('gameOverStats');
 
 // Grid dimensions (20 x 15 cells, each 40px = 800 x 600 canvas)
 const COLS = 20;
@@ -42,6 +45,8 @@ function init() {
     document.addEventListener('keydown', handleKeyPress);
     startButton.addEventListener('click', startGame);
     continueButton.addEventListener('click', continueGame);
+    mobileNewGame.addEventListener('click', startGame);
+    mobileContinue.addEventListener('click', continueGame);
     // Auto-save settings whenever any input changes.
     document.querySelectorAll('#settings input').forEach(el => {
         el.addEventListener('input', saveSettingsToStorage);
@@ -64,6 +69,14 @@ function init() {
     // Sizes the canvas and wires up the touch controls / drawer (mobile.js).
     // Registered last so the drawer closes *after* New Game / Continue run.
     setupResponsive();
+    // Pre-create the suspended audio context so the first user gesture only has
+    // to resume it — some mobile browsers won't start a context created and
+    // resumed inside the same gesture (music would otherwise wait for a second
+    // press).
+    if (!audioCtx) {
+        const Ctx = window.AudioContext || window.webkitAudioContext;
+        if (Ctx) audioCtx = new Ctx();
+    }
     startGame();
 }
 
@@ -172,6 +185,7 @@ function continueGame() {
     score -= cost;
     running = true;
     paused = false;
+    document.body.classList.remove('game-over');
     startTime = Date.now();
     if (intervalId) clearInterval(intervalId);
     intervalId = setInterval(updateGame, 100);
@@ -196,6 +210,7 @@ function startGameAt(startLevel, startScore) {
     tick = 0;
     running = true;
     paused = false;
+    document.body.classList.remove('game-over');
     startTime = Date.now();
     if (intervalId) clearInterval(intervalId);
     intervalId = setInterval(updateGame, 100);
@@ -227,15 +242,20 @@ function resumeGame() {
 function showContinue() {
     const cost = Math.floor(score / 3);
     if (cost >= 1) {
+        const label = 'Continue at Level ' + level + ' (cost ' + cost + ')';
         continueButton.style.display = 'block';
-        continueButton.textContent = 'Continue at Level ' + level + ' (cost ' + cost + ')';
+        continueButton.textContent = label;
+        mobileContinue.style.display = 'block';
+        mobileContinue.textContent = label;
     } else {
         continueButton.style.display = 'none';
+        mobileContinue.style.display = 'none';
     }
 }
 
 function hideContinue() {
     continueButton.style.display = 'none';
+    mobileContinue.style.display = 'none';
 }
 
 function key(x, y) {
@@ -349,6 +369,10 @@ function movePlayer(dx, dy) {
 
     if (nx < 0 || nx >= COLS || ny < 0 || ny >= ROWS) return;
 
+    // The first actual move is the "game started" signal: unlock audio and make
+    // sure the music loop is running.
+    if (getAudio() && !muted) startMusic();
+
     const k = key(nx, ny);
 
     // Hitting an obstacle: destroy it with a charge, otherwise game over.
@@ -397,6 +421,9 @@ function endGame() {
     stopMusic();
     activeTheme.sound('gameOver');
     showContinue();
+    document.body.classList.add('game-over');
+    const secs = Math.floor((Date.now() - startTime) / 1000);
+    gameOverStats.textContent = 'Score: ' + score + '  ·  Survived ' + secs + 's';
     draw();
 }
 
@@ -424,15 +451,16 @@ function draw() {
     if (paused) {
         drawOverlay(['Paused'], ['Close the menu to keep playing']);
     } else if (!running) {
-        const secs = Math.floor((Date.now() - startTime) / 1000);
-        const lines = ['Score: ' + score + '  ·  Survived ' + secs + 's'];
         if (document.body.classList.contains('touch-ui')) {
-            lines.push('Tap the board to play again');
-            lines.push('Menu (☰) to Continue');
+            // On touch, dim the board only — the HTML #gameOverPanel overlay
+            // shows the text and the New Game / Continue buttons.
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.55)';
+            ctx.fillRect(0, 0, VIEW.w, VIEW.h);
         } else {
-            lines.push('Enter = New Game  ·  Continue = resume (costs score)');
+            const secs = Math.floor((Date.now() - startTime) / 1000);
+            drawOverlay(['Game Over'], ['Score: ' + score + '  ·  Survived ' + secs + 's',
+                'Enter = New Game  ·  Continue = resume (costs score)']);
         }
-        drawOverlay(['Game Over'], lines);
     }
 }
 

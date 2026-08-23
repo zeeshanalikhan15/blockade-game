@@ -371,6 +371,49 @@ body.touch-ui.landscape #gameTitle {
     #stickKnob { width: 40px; height: 40px; margin: -20px 0 0 -20px; }
 }
 
+/* --- Game-over actions overlay (touch) ------------------------------------ */
+
+#gameOverPanel {
+    display: none;
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 15; /* under the drawer's scrim (20) */
+    box-sizing: border-box;
+    width: min(320px, 84vw);
+    padding: 20px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    text-align: center;
+    background-color: rgba(20, 20, 42, 0.94);
+    border: 1px solid #2a2a44;
+    border-radius: 12px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+}
+
+body.touch-ui.game-over #gameOverPanel {
+    display: flex;
+}
+
+#gameOverTitle {
+    font-size: 24px;
+    font-weight: bold;
+    color: #eaeaff;
+}
+
+#gameOverStats {
+    font-size: 14px;
+    color: #b8b8cc;
+    margin-bottom: 4px;
+}
+
+#gameOverPanel .button {
+    padding: 14px 20px;
+    font-size: 16px;
+}
+
 /* --- Drawer --------------------------------------------------------------- */
 
 body.touch-ui #sidebar {

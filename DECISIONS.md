@@ -59,7 +59,7 @@ On every push to `main`, `.github/workflows/deploy.yml` copies `src/` to a `prod
 
 ### Three layout tiers, not one responsive continuum
 - **Desktop** — scale 1, whole board, sidebar, keyboard (unchanged).
-- **Tablet** (touch, board still fits readably) — the whole board scales down to fit, plus a d-pad.
+- **Tablet** (touch, board still fits readably) — the whole board scales down to fit, plus a joystick.
 - **Phone** (smaller than 720×560) — cells stay ~38px readable, so the board no longer fits and the canvas becomes a **follow-camera window** onto it, clamped so it never scrolls past the edge. This is the "moving around a map and discovering" feel: you see a slice and the edges fade to hint there's more. No fog-of-war — the whole board is still fully rendered/known.
 
 ### Touch UI is detected, not width-gated alone
@@ -76,3 +76,9 @@ The joystick is a **translucent overlay on the board** (racing-game style), so t
 
 ### Space is the default theme
 The Theme selector lists "Space" first, so first-time visitors (no saved settings) start on Space. Existing players keep whatever they last chose, since the choice is persisted.
+
+### Audio unlocks on the first move
+The `AudioContext` is created up front on page load (it starts suspended), so the first user gesture only has to `resume()` it — some mobile browsers refuse to start a context created *and* resumed inside the same gesture (music would otherwise wait for a second press). Music is tied to movement: `movePlayer` resumes the context and (re)starts the loop on the first actual move. Space's music gain is set higher than Classic's, because sine notes read much quieter than Classic's triangle at the same amplitude.
+
+### Game-over actions overlay on touch
+On touch/narrow screens, a game-over panel (New Game + Continue, plus the final score) floats over the board so the player doesn't have to open the drawer to continue. Desktop keeps the canvas text + Enter hint. The same `showContinue`/`hideContinue` logic drives both the drawer's and the overlay's Continue button (label and visibility).

@@ -46,3 +46,6 @@ Chronological record of every activity performed on this repo. Append in sequenc
 32. **Centred the on-screen controls** — the d-pad now sits bottom-centre instead of the lower-left corner.
 33. **Fixed the pick-up hint rule** — the chevron now appears only while *nothing* edible is on screen; as soon as any collectible (green/blue/yellow) is visible it disappears (previously it could point to an off-screen item while another was already visible).
 34. **Replaced the d-pad with a virtual joystick** — on touch/narrow screens the separate direction buttons are now a single translucent thumbstick pinned bottom-right: drag it to steer, hold to keep moving (auto-repeat), release to snap back and stop.
+35. **Added a game-over overlay on touch** — when the game ends on a touch/narrow screen, a panel with **New Game** / **Continue** (plus the final score) floats over the board, so players no longer have to open the menu to continue.
+36. **Fixed music starting on the first move** — the `AudioContext` is now pre-created on load (suspended), so the first move only has to resume it; previously some mobile browsers needed a second press. Music is now tied to the first actual movement.
+37. **Loudened Space theme music** — raised the music gain (sine notes read much quieter than Classic's triangle, so it was nearly inaudible).

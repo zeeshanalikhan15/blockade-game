@@ -206,6 +206,6 @@ window.THEMES.space = {
         notes: [196, 233.08, 293.66, 233.08, 174.61, 220, 261.63, 220],
         stepMs: 340,
         type: 'sine',
-        gain: 0.09,
+        gain: 0.2,
     },
 };
