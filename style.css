@@ -1,0 +1,505 @@
+body {
+    margin: 0;
+    padding: 20px;
+    font-family: 'Arial', sans-serif;
+    background-color: #0a0a14;
+    text-align: center;
+}
+
+h1 {
+    text-align: center;
+    color: #eaeaff;
+    font-size: 32px;
+    line-height: 40px;
+    margin: 0 0 16px;
+}
+
+#layout {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+#left {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+canvas {
+    display: block;
+    background-color: #080818;
+    border: 2px solid #2a2a44;
+}
+
+#legend {
+    margin: 10px 0 0;
+    font-size: 14px;
+    color: #b8b8cc;
+}
+
+.legend-item {
+    display: inline-flex;
+    align-items: center;
+    margin: 0 8px;
+}
+
+.dot {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    margin-right: 4px;
+    border-radius: 3px;
+}
+
+#sidebar {
+    width: 320px;
+    background-color: #14142a;
+    border: 1px solid #2a2a44;
+    border-radius: 6px;
+    padding: 12px 16px;
+    text-align: left;
+    /* Align the sidebar's top with the canvas (below the title). */
+    margin-top: 56px;
+}
+
+.tabs {
+    display: flex;
+    border-bottom: 1px solid #2a2a44;
+    margin-bottom: 12px;
+}
+
+.tab {
+    flex: 1;
+    padding: 10px;
+    background: transparent;
+    color: #b8b8cc;
+    border: none;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    font-size: 15px;
+}
+
+.tab.active {
+    color: #eaeaff;
+    border-bottom-color: #3a5bd6;
+}
+
+#hud {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 16px;
+    font-size: 18px;
+    color: #eaeaff;
+}
+
+#hud .stat {
+    font-weight: bold;
+}
+
+#controls .button {
+    width: 100%;
+    margin: 8px 0;
+}
+
+#settings h2 {
+    margin: 0 0 8px;
+    font-size: 16px;
+    color: #eaeaff;
+}
+
+#settings .hint {
+    font-size: 12px;
+    font-weight: normal;
+    color: #8888aa;
+}
+
+#settings label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    margin: 8px 0;
+    font-size: 14px;
+    color: #b8b8cc;
+}
+
+#settings input,
+#settings select {
+    padding: 4px;
+    font-size: 14px;
+    background-color: #0a0a14;
+    color: #eaeaff;
+    border: 1px solid #2a2a44;
+}
+
+#settings input {
+    width: 70px;
+}
+
+#settings input[type="checkbox"],
+#settings input[type="range"] {
+    width: auto;
+}
+
+#settings input[type="range"] {
+    width: 110px;
+    padding: 0;
+}
+
+.button {
+    display: block;
+    padding: 10px 20px;
+    font-size: 16px;
+    color: #fff;
+    background-color: #3a5bd6;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.button:hover {
+    background-color: #2f4ab8;
+}
+
+/* ===========================================================================
+   Small screens — the top bar, drawer, and on-screen controls are hidden on
+   desktop and switched on by the `touch-ui` class that mobile.js sets.
+     .touch-ui   touch device or narrow window: top bar + drawer + d-pad
+     .compact    phone-sized: the canvas becomes a window onto the board
+     .landscape  phone on its side: the d-pad floats over the board
+   =========================================================================== */
+
+#topbar,
+#touchControls,
+#scrim,
+#drawerClose,
+#legendSlot {
+    display: none;
+}
+
+.icon-button {
+    box-sizing: border-box;
+    width: 40px;
+    height: 40px;
+    flex: 0 0 auto;
+    background-color: #1d1d3a;
+    color: #eaeaff;
+    border: 1px solid #2a2a44;
+    border-radius: 10px;
+    font-size: 17px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.chip {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 5px;
+    padding: 4px 9px;
+    background-color: #0f0f22;
+    border: 1px solid #2a2a44;
+    border-radius: 999px;
+    font-size: 11px;
+    color: #8f8fb5;
+    white-space: nowrap;
+}
+
+.chip b {
+    font-size: 13px;
+    color: #eaeaff;
+}
+
+#joystick {
+    width: 118px;
+    height: 118px;
+    position: relative;
+    pointer-events: auto;
+    touch-action: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+#stickBase {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 50%;
+    border: 2px solid rgba(130, 140, 205, 0.5);
+    background-color: rgba(10, 10, 24, 0.18);
+}
+
+#stickKnob {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 46px;
+    height: 46px;
+    margin: -23px 0 0 -23px;
+    border-radius: 50%;
+    background-color: rgba(58, 91, 214, 0.4);
+    border: 1px solid rgba(150, 160, 220, 0.55);
+    transform: translate(0px, 0px);
+    will-change: transform;
+}
+
+/* --- Touch / narrow layout ------------------------------------------------ */
+
+body.touch-ui {
+    padding: 0;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+    overscroll-behavior: none;
+    touch-action: manipulation;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+body.touch-ui #app {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+}
+
+body.touch-ui #topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    flex: 0 0 auto;
+    padding: 6px 10px;
+    background-color: #14142a;
+    border-bottom: 1px solid #2a2a44;
+}
+
+#miniHud {
+    display: flex;
+    gap: 6px;
+    overflow: hidden;
+}
+
+body.touch-ui #layout {
+    flex: 1 1 auto;
+    min-height: 0;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: stretch;
+    gap: 0;
+}
+
+body.touch-ui #left {
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+body.touch-ui #stage {
+    flex: 1 1 auto;
+    min-height: 0;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+body.touch-ui canvas {
+    touch-action: none;
+}
+
+body.touch-ui #gameTitle {
+    flex: 0 0 auto;
+    margin: 6px 0;
+    font-size: 18px;
+    line-height: 24px;
+}
+
+body.touch-ui #legend {
+    flex: 0 0 auto;
+    padding: 0 8px;
+    font-size: 12px;
+}
+
+/* Float the joystick over the board (translucent, racing-game style) instead
+   of reserving a strip below it, so the play area keeps the full height. The
+   container ignores touches; only the stick itself is tappable. */
+body.touch-ui #touchControls {
+    display: flex;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 10;
+    justify-content: flex-end;
+    padding: 0 18px calc(18px + env(safe-area-inset-bottom));
+    pointer-events: none;
+}
+
+body.touch-ui #joystick {
+    opacity: 0.55;
+    transition: opacity 0.15s ease;
+}
+
+body.touch-ui #joystick:active,
+body.touch-ui #joystick:focus-within {
+    opacity: 1;
+}
+
+body.touch-ui.landscape #joystick {
+    width: 96px;
+    height: 96px;
+}
+
+body.touch-ui.landscape #stickKnob {
+    width: 40px;
+    height: 40px;
+    margin: -20px 0 0 -20px;
+}
+
+body.touch-ui.landscape #gameTitle {
+    display: none;
+}
+
+@media (max-height: 700px) {
+    #joystick { width: 100px; height: 100px; }
+    #stickKnob { width: 40px; height: 40px; margin: -20px 0 0 -20px; }
+}
+
+/* --- Game-over actions overlay (touch) ------------------------------------ */
+
+#gameOverPanel {
+    display: none;
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 15; /* under the drawer's scrim (20) */
+    box-sizing: border-box;
+    width: min(320px, 84vw);
+    padding: 20px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    text-align: center;
+    background-color: rgba(20, 20, 42, 0.94);
+    border: 1px solid #2a2a44;
+    border-radius: 12px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+}
+
+body.touch-ui.game-over #gameOverPanel {
+    display: flex;
+}
+
+#gameOverTitle {
+    font-size: 24px;
+    font-weight: bold;
+    color: #eaeaff;
+}
+
+#gameOverStats {
+    font-size: 14px;
+    color: #b8b8cc;
+    margin-bottom: 4px;
+}
+
+#gameOverPanel .button {
+    padding: 14px 20px;
+    font-size: 16px;
+}
+
+/* --- Drawer --------------------------------------------------------------- */
+
+body.touch-ui #sidebar {
+    box-sizing: border-box;
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 30;
+    width: min(360px, 88vw);
+    margin: 0;
+    border: none;
+    border-left: 1px solid #2a2a44;
+    border-radius: 0;
+    padding: calc(12px + env(safe-area-inset-top)) 16px calc(24px + env(safe-area-inset-bottom));
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    transform: translateX(100%);
+    transition: transform 0.22s ease;
+}
+
+body.touch-ui.drawer-open #sidebar {
+    transform: translateX(0);
+}
+
+body.touch-ui.drawer-open #scrim {
+    display: block;
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 20;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+body.touch-ui #drawerClose {
+    display: block;
+    margin: 0 0 8px auto;
+}
+
+/* Comfortable tap targets; 16px keeps iOS from zooming in on focus. */
+body.touch-ui .tab {
+    padding: 12px 10px;
+    font-size: 16px;
+}
+
+body.touch-ui #settings label {
+    margin: 12px 0;
+    font-size: 15px;
+}
+
+body.touch-ui #settings input,
+body.touch-ui #settings select {
+    min-height: 36px;
+    font-size: 16px;
+}
+
+body.touch-ui #settings input[type="number"] {
+    width: 84px;
+}
+
+body.touch-ui #controls .button {
+    padding: 14px 20px;
+}
+
+/* The legend moves into the drawer on phone-sized screens. */
+body.touch-ui.compact #legendSlot {
+    display: block;
+    margin-top: 20px;
+    border-top: 1px solid #2a2a44;
+    padding-top: 12px;
+}
+
+.drawer-heading {
+    margin: 0 0 8px;
+    font-size: 16px;
+    color: #eaeaff;
+}
+
+#legendSlot #legend {
+    margin: 0;
+    text-align: left;
+}
+
+#legendSlot .legend-item {
+    display: flex;
+    margin: 8px 0;
+}
