@@ -100,11 +100,9 @@
 
         <!-- On-screen pilot controls — only shown on touch / narrow screens. -->
         <div id="touchControls">
-            <div id="dpad">
-                <button class="dbtn up" data-dx="0" data-dy="-1" aria-label="Move up">&#9650;</button>
-                <button class="dbtn left" data-dx="-1" data-dy="0" aria-label="Move left">&#9664;</button>
-                <button class="dbtn right" data-dx="1" data-dy="0" aria-label="Move right">&#9654;</button>
-                <button class="dbtn down" data-dx="0" data-dy="1" aria-label="Move down">&#9660;</button>
+            <div id="joystick" role="application" aria-label="Move joystick">
+                <div id="stickBase"></div>
+                <div id="stickKnob"></div>
             </div>
         </div>
     </div>

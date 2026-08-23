@@ -213,36 +213,39 @@ canvas {
     color: #eaeaff;
 }
 
-#dpad {
-    --dbtn: 62px;
-    display: grid;
-    grid-template-columns: repeat(3, var(--dbtn));
-    grid-template-rows: repeat(3, var(--dbtn));
-    gap: 6px;
-}
-
-.dbtn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: rgba(58, 91, 214, 0.16);
-    color: rgba(230, 235, 255, 0.9);
-    border: 1px solid rgba(130, 140, 205, 0.5);
-    border-radius: 14px;
-    font-size: 20px;
-    cursor: pointer;
+#joystick {
+    width: 118px;
+    height: 118px;
+    position: relative;
+    pointer-events: auto;
     touch-action: none;
     -webkit-tap-highlight-color: transparent;
 }
 
-.dbtn:active {
-    background-color: rgba(58, 91, 214, 0.6);
+#stickBase {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 50%;
+    border: 2px solid rgba(130, 140, 205, 0.5);
+    background-color: rgba(10, 10, 24, 0.18);
 }
 
-.dbtn.up { grid-area: 1 / 2; }
-.dbtn.left { grid-area: 2 / 1; }
-.dbtn.right { grid-area: 2 / 3; }
-.dbtn.down { grid-area: 3 / 2; }
+#stickKnob {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 46px;
+    height: 46px;
+    margin: -23px 0 0 -23px;
+    border-radius: 50%;
+    background-color: rgba(58, 91, 214, 0.4);
+    border: 1px solid rgba(150, 160, 220, 0.55);
+    transform: translate(0px, 0px);
+    will-change: transform;
+}
 
 /* --- Touch / narrow layout ------------------------------------------------ */
 
@@ -323,9 +326,9 @@ body.touch-ui #legend {
     font-size: 12px;
 }
 
-/* Float the pad over the board (translucent, racing-game style) instead of
-   reserving a strip below it, so the play area keeps the full height. The
-   container ignores touches; only the buttons themselves are tappable. */
+/* Float the joystick over the board (translucent, racing-game style) instead
+   of reserving a strip below it, so the play area keeps the full height. The
+   container ignores touches; only the stick itself is tappable. */
 body.touch-ui #touchControls {
     display: flex;
     position: fixed;
@@ -333,24 +336,30 @@ body.touch-ui #touchControls {
     right: 0;
     bottom: 0;
     z-index: 10;
-    justify-content: center;
-    padding: 0 0 calc(14px + env(safe-area-inset-bottom));
+    justify-content: flex-end;
+    padding: 0 18px calc(18px + env(safe-area-inset-bottom));
     pointer-events: none;
 }
 
-body.touch-ui #dpad {
-    pointer-events: auto;
+body.touch-ui #joystick {
     opacity: 0.55;
     transition: opacity 0.15s ease;
 }
 
-body.touch-ui #dpad:active,
-body.touch-ui #dpad:focus-within {
+body.touch-ui #joystick:active,
+body.touch-ui #joystick:focus-within {
     opacity: 1;
 }
 
-body.touch-ui.landscape #dpad {
-    --dbtn: 50px;
+body.touch-ui.landscape #joystick {
+    width: 96px;
+    height: 96px;
+}
+
+body.touch-ui.landscape #stickKnob {
+    width: 40px;
+    height: 40px;
+    margin: -20px 0 0 -20px;
 }
 
 body.touch-ui.landscape #gameTitle {
@@ -358,7 +367,8 @@ body.touch-ui.landscape #gameTitle {
 }
 
 @media (max-height: 700px) {
-    #dpad { --dbtn: 54px; }
+    #joystick { width: 100px; height: 100px; }
+    #stickKnob { width: 40px; height: 40px; margin: -20px 0 0 -20px; }
 }
 
 /* --- Drawer --------------------------------------------------------------- */

@@ -292,22 +292,82 @@ function releaseDir() {
     if (holdRepeat) { clearInterval(holdRepeat); holdRepeat = null; }
 }
 
-function setupDpad() {
-    document.querySelectorAll('.dbtn').forEach(function (btn) {
-        const dx = parseInt(btn.dataset.dx, 10);
-        const dy = parseInt(btn.dataset.dy, 10);
-        btn.addEventListener('pointerdown', function (e) {
-            e.preventDefault();
-            // Keep receiving events even if the thumb slides off the button.
-            if (btn.setPointerCapture) btn.setPointerCapture(e.pointerId);
-            getAudio();
-            pressDir(dx, dy);
-        });
-        ['pointerup', 'pointercancel'].forEach(function (type) {
-            btn.addEventListener(type, releaseDir);
-        });
-        btn.addEventListener('contextmenu', function (e) { e.preventDefault(); });
-    });
+// Virtual joystick. Dragging the knob away from centre moves the player in the
+// dominant cardinal direction; holding it repeats the move like key auto-repeat.
+let stickPointer = null;   // active pointerId while dragging, else null
+let stickDir = null;       // 'up' | 'down' | 'left' | 'right' while engaged
+let stickKnob = null;
+let stickCenter = { x: 0, y: 0 };
+let stickRadius = 42;
+const STICK_DEAD_ZONE = 14;
+
+function setupJoystick() {
+    const joy = document.getElementById('joystick');
+    if (!joy) return;
+    stickKnob = document.getElementById('stickKnob');
+
+    function deltaFor(d) {
+        if (d === 'up') return [0, -1];
+        if (d === 'down') return [0, 1];
+        if (d === 'left') return [-1, 0];
+        return [1, 0]; // right
+    }
+
+    function onDown(e) {
+        if (stickPointer !== null) return;
+        const rect = joy.getBoundingClientRect();
+        stickCenter = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+        stickRadius = Math.min(rect.width, rect.height) / 2 - 8;
+        stickPointer = e.pointerId;
+        if (joy.setPointerCapture) {
+            try { joy.setPointerCapture(e.pointerId); } catch (err) { /* synthetic/idle pointer */ }
+        }
+        getAudio();
+        e.preventDefault();
+    }
+
+    function onMove(e) {
+        if (stickPointer !== e.pointerId) return;
+        e.preventDefault();
+        let dx = e.clientX - stickCenter.x;
+        let dy = e.clientY - stickCenter.y;
+        const len = Math.hypot(dx, dy);
+        if (len > stickRadius && len > 0) {
+            dx = dx / len * stickRadius;
+            dy = dy / len * stickRadius;
+        }
+        if (stickKnob) stickKnob.style.transform = 'translate(' + dx + 'px, ' + dy + 'px)';
+
+        if (len < STICK_DEAD_ZONE) {
+            if (stickDir) { stickDir = null; releaseDir(); }
+            return;
+        }
+        const d = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up');
+        if (d !== stickDir) {
+            stickDir = d;
+            const delta = deltaFor(d);
+            pressDir(delta[0], delta[1]);
+        }
+    }
+
+    function onUp(e) {
+        if (stickPointer !== e.pointerId) return;
+        stickPointer = null;
+        resetJoystick();
+    }
+
+    joy.addEventListener('pointerdown', onDown);
+    joy.addEventListener('pointermove', onMove);
+    joy.addEventListener('pointerup', onUp);
+    joy.addEventListener('pointercancel', onUp);
+    joy.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+}
+
+// Snap the knob back to centre and stop any held movement.
+function resetJoystick() {
+    if (stickKnob) stickKnob.style.transform = 'translate(0px, 0px)';
+    stickDir = null;
+    releaseDir();
 }
 
 // Swiping across the board moves one cell in the swiped direction; a plain tap
@@ -360,7 +420,7 @@ function isDrawerOpen() {
 function openDrawer() {
     document.body.classList.add('drawer-open');
     document.getElementById('menuButton').setAttribute('aria-expanded', 'true');
-    releaseDir();
+    resetJoystick();
     pauseGame();
 }
 
@@ -388,7 +448,7 @@ function setupDrawer() {
 
 function setupResponsive() {
     setupDrawer();
-    setupDpad();
+    setupJoystick();
     setupSwipe();
 
     let resizeTimer = null;

@@ -45,3 +45,4 @@ Chronological record of every activity performed on this repo. Append in sequenc
 31. **Defaulted the theme to Space** — the Theme selector now lists "Space" first, so first-time visitors (no saved settings) start on the Space theme.
 32. **Centred the on-screen controls** — the d-pad now sits bottom-centre instead of the lower-left corner.
 33. **Fixed the pick-up hint rule** — the chevron now appears only while *nothing* edible is on screen; as soon as any collectible (green/blue/yellow) is visible it disappears (previously it could point to an off-screen item while another was already visible).
+34. **Replaced the d-pad with a virtual joystick** — on touch/narrow screens the separate direction buttons are now a single translucent thumbstick pinned bottom-right: drag it to steer, hold to keep moving (auto-repeat), release to snap back and stop.

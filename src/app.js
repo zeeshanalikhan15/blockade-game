@@ -392,7 +392,7 @@ function movePlayer(dx, dy) {
 function endGame() {
     running = false;
     paused = false;
-    releaseDir();
+    resetJoystick();
     clearInterval(intervalId);
     stopMusic();
     activeTheme.sound('gameOver');

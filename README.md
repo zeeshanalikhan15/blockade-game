@@ -15,7 +15,7 @@ Each theme is a single object exposing `name`, `legend`, `render(ctx, state)`, `
 
 ## How to play
 
-- Move with the **arrow keys** (or WASD). On touch screens, use the **on-screen d-pad** or **swipe** across the board.
+- Move with the **arrow keys** (or WASD). On touch screens, use the **on-screen joystick** or **swipe** across the board.
 - **Collect pickups** (+10) and **bonuses** (+50).
 - Grab a **power-up** to gain charges that **destroy obstacles** instead of crashing.
 - Hit an obstacle without a charge and it's game over.
