@@ -2,82 +2,118 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#0a0a14">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
     <title>Blockade Game</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div id="layout">
-        <div id="left">
-            <h1 id="gameTitle">Blockade Game</h1>
-            <canvas id="gameCanvas" width="800" height="600"></canvas>
-            <div id="legend"></div>
+    <div id="app">
+        <!-- Compact status bar — only shown on touch / narrow screens. -->
+        <header id="topbar">
+            <div id="miniHud">
+                <span class="chip"><span class="chip-label">Score</span><b id="mScore">0</b></span>
+                <span class="chip"><span class="chip-label">Lvl</span><b id="mLevel">1</b></span>
+                <span class="chip"><span class="chip-label">Destroy</span><b id="mPower">0</b></span>
+            </div>
+            <button id="menuButton" class="icon-button" aria-label="Open menu" aria-expanded="false">&#9776;</button>
+        </header>
+
+        <div id="layout">
+            <div id="left">
+                <h1 id="gameTitle">Blockade Game</h1>
+                <div id="stage">
+                    <canvas id="gameCanvas" width="800" height="600"></canvas>
+                </div>
+                <div id="legend"></div>
+            </div>
+
+            <div id="sidebar">
+                <button id="drawerClose" class="icon-button" aria-label="Close menu">&#10005;</button>
+
+                <div class="tabs">
+                    <button class="tab active" data-tab="game">Game</button>
+                    <button class="tab" data-tab="settings">Settings</button>
+                </div>
+
+                <div id="tab-game" class="tab-panel">
+                    <div id="hud">
+                        <span id="score" class="stat">Score: 0</span>
+                        <span id="level" class="stat">Level: 1</span>
+                        <span id="power" class="stat">Destroy: 0</span>
+                    </div>
+                    <div id="controls">
+                        <button id="startButton" class="button">New Game</button>
+                        <button id="continueButton" class="button" style="display:none">Continue</button>
+                    </div>
+                    <!-- On small screens the legend moves in here, out of the play area. -->
+                    <div id="legendSlot">
+                        <h2 class="drawer-heading">Legend</h2>
+                    </div>
+                </div>
+
+                <div id="tab-settings" class="tab-panel" style="display:none">
+                    <div id="settings">
+                        <h2>Settings <span class="hint">(auto-saved · apply on New Game)</span></h2>
+                        <label>Theme
+                            <select id="theme">
+                                <option value="classic">Classic</option>
+                                <option value="space">Space</option>
+                            </select>
+                        </label>
+                        <label>Mute sounds
+                            <input type="checkbox" id="mute">
+                        </label>
+                        <label>Music volume
+                            <input type="range" id="musicVolume" min="0" max="100" value="50">
+                        </label>
+                        <label>Change background color each level
+                            <input type="checkbox" id="colorChange" checked>
+                        </label>
+                        <label>Score between waves
+                            <input type="number" id="scorePerWave" value="300" min="50" step="50">
+                        </label>
+                        <label>Obstacles per wave
+                            <input type="number" id="greysPerWave" value="5" min="1" max="100">
+                        </label>
+                        <label>Total levels
+                            <input type="number" id="maxLevels" value="10" min="1" max="50">
+                        </label>
+                        <label>Pickups on screen
+                            <input type="number" id="maxGreens" value="3" min="1" max="20">
+                        </label>
+                        <label>Bonus frequency (seconds)
+                            <input type="number" id="bonusInterval" value="8" min="2" max="120">
+                        </label>
+                        <label>Power-up: levels between spawns
+                            <input type="number" id="yellowLevelGap" value="5" min="1" max="50">
+                        </label>
+                        <label>Power-up: max destroy charges
+                            <input type="number" id="maxPowerForYellow" value="10" min="0" max="100">
+                        </label>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <div id="sidebar">
-            <div class="tabs">
-                <button class="tab active" data-tab="game">Game</button>
-                <button class="tab" data-tab="settings">Settings</button>
-            </div>
-
-            <div id="tab-game" class="tab-panel">
-                <div id="hud">
-                    <span id="score" class="stat">Score: 0</span>
-                    <span id="level" class="stat">Level: 1</span>
-                    <span id="power" class="stat">Destroy: 0</span>
-                </div>
-                <div id="controls">
-                    <button id="startButton" class="button">New Game</button>
-                    <button id="continueButton" class="button" style="display:none">Continue</button>
-                </div>
-            </div>
-
-            <div id="tab-settings" class="tab-panel" style="display:none">
-                <div id="settings">
-                    <h2>Settings <span class="hint">(auto-saved · apply on New Game)</span></h2>
-                    <label>Theme
-                        <select id="theme">
-                            <option value="classic">Classic</option>
-                            <option value="space">Space</option>
-                        </select>
-                    </label>
-                    <label>Mute sounds
-                        <input type="checkbox" id="mute">
-                    </label>
-                    <label>Music volume
-                        <input type="range" id="musicVolume" min="0" max="100" value="50">
-                    </label>
-                    <label>Change background color each level
-                        <input type="checkbox" id="colorChange" checked>
-                    </label>
-                    <label>Score between waves
-                        <input type="number" id="scorePerWave" value="300" min="50" step="50">
-                    </label>
-                    <label>Obstacles per wave
-                        <input type="number" id="greysPerWave" value="5" min="1" max="100">
-                    </label>
-                    <label>Total levels
-                        <input type="number" id="maxLevels" value="10" min="1" max="50">
-                    </label>
-                    <label>Pickups on screen
-                        <input type="number" id="maxGreens" value="3" min="1" max="20">
-                    </label>
-                    <label>Bonus frequency (seconds)
-                        <input type="number" id="bonusInterval" value="8" min="2" max="120">
-                    </label>
-                    <label>Power-up: levels between spawns
-                        <input type="number" id="yellowLevelGap" value="5" min="1" max="50">
-                    </label>
-                    <label>Power-up: max destroy charges
-                        <input type="number" id="maxPowerForYellow" value="10" min="0" max="100">
-                    </label>
-                </div>
+        <!-- On-screen pilot controls — only shown on touch / narrow screens. -->
+        <div id="touchControls">
+            <div id="dpad">
+                <button class="dbtn up" data-dx="0" data-dy="-1" aria-label="Move up">&#9650;</button>
+                <button class="dbtn left" data-dx="-1" data-dy="0" aria-label="Move left">&#9664;</button>
+                <button class="dbtn right" data-dx="1" data-dy="0" aria-label="Move right">&#9654;</button>
+                <button class="dbtn down" data-dx="0" data-dy="1" aria-label="Move down">&#9660;</button>
             </div>
         </div>
     </div>
 
+    <div id="scrim"></div>
+
     <script src="themes/classic.js"></script>
     <script src="themes/space.js"></script>
+    <script src="mobile.js"></script>
     <script src="app.js"></script>
 </body>
 </html>

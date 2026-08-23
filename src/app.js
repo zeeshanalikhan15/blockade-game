@@ -27,14 +27,13 @@ let yellowAvailableAt;
 let nextWaveScore;
 let tick;
 let running;
+let paused;        // true while the menu drawer is open
 let intervalId;
 let startTime;
 
 let dir = { dx: 0, dy: -1 };
 
 function init() {
-    canvas.width = COLS * CELL;
-    canvas.height = ROWS * CELL;
     loadSettingsFromStorage();
     muted = document.getElementById('mute').checked;
     musicVol = clampInt(input('musicVolume'), 0, 100, 50);
@@ -62,6 +61,9 @@ function init() {
         setTheme(this.value);
         saveSettingsToStorage();
     });
+    // Sizes the canvas and wires up the touch controls / drawer (mobile.js).
+    // Registered last so the drawer closes *after* New Game / Continue run.
+    setupResponsive();
     startGame();
 }
 
@@ -169,6 +171,7 @@ function continueGame() {
     if (cost < 1) return;
     score -= cost;
     running = true;
+    paused = false;
     startTime = Date.now();
     if (intervalId) clearInterval(intervalId);
     intervalId = setInterval(updateGame, 100);
@@ -192,11 +195,32 @@ function startGameAt(startLevel, startScore) {
     dir = { dx: 0, dy: -1 };
     tick = 0;
     running = true;
+    paused = false;
     startTime = Date.now();
     if (intervalId) clearInterval(intervalId);
     intervalId = setInterval(updateGame, 100);
     if (audioCtx && !muted) startMusic();
     hideContinue();
+    updateCamera(true);
+    draw();
+}
+
+// The menu drawer covers the board, so the game waits while it is open.
+function pauseGame() {
+    if (!running || paused) return;
+    paused = true;
+    if (intervalId) clearInterval(intervalId);
+    intervalId = null;
+    stopMusic();
+    draw();
+}
+
+function resumeGame() {
+    if (!running || !paused) return;
+    paused = false;
+    if (intervalId) clearInterval(intervalId);
+    intervalId = setInterval(updateGame, 100);
+    if (audioCtx && !muted) startMusic();
     draw();
 }
 
@@ -292,6 +316,11 @@ function spawnYellowBonus() {
 }
 
 function handleKeyPress(event) {
+    if (event.key === 'Escape' && isDrawerOpen()) {
+        closeDrawer();
+        return;
+    }
+
     // Restart on Enter or Space after game over.
     if (!running) {
         if (event.key === 'Enter' || event.key === ' ') {
@@ -300,6 +329,8 @@ function handleKeyPress(event) {
         }
         return;
     }
+
+    if (paused) return;
 
     let dx = 0, dy = 0;
     if (event.key === 'ArrowRight' || event.key === 'd' || event.key === 'D') dx = 1;
@@ -335,6 +366,7 @@ function movePlayer(dx, dy) {
     player.x = nx;
     player.y = ny;
     dir = { dx, dy };
+    updateCamera(false);
     activeTheme.sound('move');
 
     if (items.has(k)) {
@@ -359,6 +391,8 @@ function movePlayer(dx, dy) {
 
 function endGame() {
     running = false;
+    paused = false;
+    releaseDir();
     clearInterval(intervalId);
     stopMusic();
     activeTheme.sound('gameOver');
@@ -367,34 +401,70 @@ function endGame() {
 }
 
 function draw() {
+    // Themes always draw the full board in art units; VIEW maps those onto the
+    // visible window (device pixels, camera offset, scale — see mobile.js).
+    ctx.setTransform(VIEW.dpr, 0, 0, VIEW.dpr, 0, 0);
+    ctx.clearRect(0, 0, VIEW.w, VIEW.h);
+
+    ctx.save();
+    ctx.translate(-Math.round(VIEW.camX), -Math.round(VIEW.camY));
+    ctx.scale(VIEW.scale, VIEW.scale);
     activeTheme.render(ctx, {
         player, dir, obstacles, items, blueBonus, yellowBonus,
         level,
         colorChangeEnabled: document.getElementById('colorChange').checked,
         cols: COLS, rows: ROWS, cell: CELL,
     });
+    ctx.restore();
 
+    drawEdgeHints(ctx);
     updateHud();
 
-    if (!running) {
+    if (paused) {
+        drawOverlay(['Paused'], ['Close the menu to keep playing']);
+    } else if (!running) {
         const secs = Math.floor((Date.now() - startTime) / 1000);
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = '#fff';
-        ctx.textAlign = 'center';
-        ctx.font = '40px Arial';
-        ctx.fillText('Game Over', canvas.width / 2, canvas.height / 2 - 20);
-        ctx.font = '20px Arial';
-        ctx.fillText('Score: ' + score + '  ·  Survived ' + secs + 's', canvas.width / 2, canvas.height / 2 + 20);
-        ctx.fillText('Enter = New Game  ·  Continue = resume (costs score)', canvas.width / 2, canvas.height / 2 + 55);
-        ctx.textAlign = 'left';
+        const lines = ['Score: ' + score + '  ·  Survived ' + secs + 's'];
+        if (document.body.classList.contains('touch-ui')) {
+            lines.push('Tap the board to play again');
+            lines.push('Menu (☰) to Continue');
+        } else {
+            lines.push('Enter = New Game  ·  Continue = resume (costs score)');
+        }
+        drawOverlay(['Game Over'], lines);
     }
 }
 
+// Dim the board and centre a heading plus one or more lines under it. Text
+// scales with the window so it stays inside the board on a phone.
+function drawOverlay(headings, lines) {
+    const s = clampNum(VIEW.w / 800, 0.55, 1);
+    const cx = VIEW.w / 2;
+    const cy = VIEW.h / 2;
+
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+    ctx.fillRect(0, 0, VIEW.w, VIEW.h);
+    ctx.fillStyle = '#fff';
+    ctx.textAlign = 'center';
+
+    ctx.font = Math.round(40 * s) + 'px Arial';
+    headings.forEach((text, i) => ctx.fillText(text, cx, cy - 20 * s + i * 44 * s));
+
+    ctx.font = Math.round(20 * s) + 'px Arial';
+    lines.forEach((text, i) => ctx.fillText(text, cx, cy + (20 + i * 35) * s));
+
+    ctx.textAlign = 'left';
+}
+
 function updateHud() {
+    const shownLevel = Math.min(level, settings.maxLevels);
     scoreEl.textContent = 'Score: ' + score;
-    levelEl.textContent = 'Level: ' + Math.min(level, settings.maxLevels);
+    levelEl.textContent = 'Level: ' + shownLevel;
     powerEl.textContent = 'Destroy: ' + power;
+    // Compact copies in the mobile top bar.
+    document.getElementById('mScore').textContent = score;
+    document.getElementById('mLevel').textContent = shownLevel;
+    document.getElementById('mPower').textContent = power;
 }
 
 // ---------------------------------------------------------------------------

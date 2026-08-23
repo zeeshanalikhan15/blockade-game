@@ -51,3 +51,22 @@ The canvas sits on the left; a right-side sidebar holds two tabs: **Game** (scor
 
 ### GitHub Pages deployment via a `prod` branch
 On every push to `main`, `.github/workflows/deploy.yml` copies `src/` to a `prod` branch (force-push) and GitHub Pages serves from `prod` at path `/`. This mirrors the `zeeshanalikhan15.github.io` repo's approach, minus the build step (the game is static HTML/JS/CSS). The public URL is `https://zeeshanalikhan15.github.io/blockade-game/`.
+
+## 2026-08-23
+
+### The board always draws in "art units"; the viewport maps them to the screen
+`src/mobile.js` owns the screen, not the game. The engine keeps drawing the full 20×15 board in its native 800×600 "art units", and `mobile.js` sets a `VIEW` (scale, visible width/height, camera offset, `devicePixelRatio`). `draw()` clears in device pixels, translates by the camera, scales, renders the whole board, then restores. The two themes are untouched. `devicePixelRatio` is capped at 2× — beyond that the extra pixels cost more than a phone shows.
+
+### Three layout tiers, not one responsive continuum
+- **Desktop** — scale 1, whole board, sidebar, keyboard (unchanged).
+- **Tablet** (touch, board still fits readably) — the whole board scales down to fit, plus a d-pad.
+- **Phone** (smaller than 720×560) — cells stay ~38px readable, so the board no longer fits and the canvas becomes a **follow-camera window** onto it, clamped so it never scrolls past the edge. This is the "moving around a map and discovering" feel: you see a slice and the edges fade to hint there's more. No fog-of-war — the whole board is still fully rendered/known.
+
+### Touch UI is detected, not width-gated alone
+Touch UI = a coarse pointer, or touch points + a non-laptop width, or a narrow window. This catches tablets that request the desktop site (which can report a fine pointer) while leaving touchscreen laptops on the desktop layout.
+
+### Settings + scores become a drawer on small screens
+On touch UI the sidebar is a slide-in drawer (☰ in a compact top bar), so scores and settings never sit in the play area. Opening it **pauses** the game (clears the loop + music, restores them on close) so reading settings mid-game can't get you killed. The legend moves into the drawer's Game tab on phones so it stops consuming vertical space; the score/level/destroy stats are mirrored into the top bar for at-a-glance reading.
+
+### On-screen pilot controls
+A three-by-three d-pad (press moves once, holding auto-repeats like key auto-repeat, releasing stops) plus swipe-to-move on the canvas, and tap-to-restart after a game over. In landscape the d-pad floats over the board's lower-left corner instead of reserving vertical space.

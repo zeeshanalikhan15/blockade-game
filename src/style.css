@@ -164,3 +164,283 @@ canvas {
 .button:hover {
     background-color: #2f4ab8;
 }
+
+/* ===========================================================================
+   Small screens — the top bar, drawer, and on-screen controls are hidden on
+   desktop and switched on by the `touch-ui` class that mobile.js sets.
+     .touch-ui   touch device or narrow window: top bar + drawer + d-pad
+     .compact    phone-sized: the canvas becomes a window onto the board
+     .landscape  phone on its side: the d-pad floats over the board
+   =========================================================================== */
+
+#topbar,
+#touchControls,
+#scrim,
+#drawerClose,
+#legendSlot {
+    display: none;
+}
+
+.icon-button {
+    box-sizing: border-box;
+    width: 40px;
+    height: 40px;
+    flex: 0 0 auto;
+    background-color: #1d1d3a;
+    color: #eaeaff;
+    border: 1px solid #2a2a44;
+    border-radius: 10px;
+    font-size: 17px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.chip {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 5px;
+    padding: 4px 9px;
+    background-color: #0f0f22;
+    border: 1px solid #2a2a44;
+    border-radius: 999px;
+    font-size: 11px;
+    color: #8f8fb5;
+    white-space: nowrap;
+}
+
+.chip b {
+    font-size: 13px;
+    color: #eaeaff;
+}
+
+#dpad {
+    --dbtn: 62px;
+    display: grid;
+    grid-template-columns: repeat(3, var(--dbtn));
+    grid-template-rows: repeat(3, var(--dbtn));
+    gap: 6px;
+}
+
+.dbtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(58, 91, 214, 0.22);
+    color: #dfe4ff;
+    border: 1px solid #2a2a44;
+    border-radius: 14px;
+    font-size: 20px;
+    cursor: pointer;
+    touch-action: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.dbtn:active {
+    background-color: rgba(58, 91, 214, 0.65);
+}
+
+.dbtn.up { grid-area: 1 / 2; }
+.dbtn.left { grid-area: 2 / 1; }
+.dbtn.right { grid-area: 2 / 3; }
+.dbtn.down { grid-area: 3 / 2; }
+
+/* --- Touch / narrow layout ------------------------------------------------ */
+
+body.touch-ui {
+    padding: 0;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+    overscroll-behavior: none;
+    touch-action: manipulation;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+body.touch-ui #app {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+}
+
+body.touch-ui #topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    flex: 0 0 auto;
+    padding: 6px 10px;
+    background-color: #14142a;
+    border-bottom: 1px solid #2a2a44;
+}
+
+#miniHud {
+    display: flex;
+    gap: 6px;
+    overflow: hidden;
+}
+
+body.touch-ui #layout {
+    flex: 1 1 auto;
+    min-height: 0;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: stretch;
+    gap: 0;
+}
+
+body.touch-ui #left {
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+body.touch-ui #stage {
+    flex: 1 1 auto;
+    min-height: 0;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+body.touch-ui canvas {
+    touch-action: none;
+}
+
+body.touch-ui #gameTitle {
+    flex: 0 0 auto;
+    margin: 6px 0;
+    font-size: 18px;
+    line-height: 24px;
+}
+
+body.touch-ui #legend {
+    flex: 0 0 auto;
+    padding: 0 8px;
+    font-size: 12px;
+}
+
+body.touch-ui #touchControls {
+    display: flex;
+    flex: 0 0 auto;
+    justify-content: center;
+    padding: 10px 0 14px;
+}
+
+/* Phone on its side: float the pad over the board instead of below it. */
+body.touch-ui.landscape #touchControls {
+    position: fixed;
+    left: 0;
+    bottom: env(safe-area-inset-bottom);
+    padding: 0 0 8px 10px;
+    justify-content: flex-start;
+    pointer-events: none;
+    z-index: 10;
+}
+
+body.touch-ui.landscape #dpad {
+    --dbtn: 50px;
+    opacity: 0.6;
+    pointer-events: auto;
+}
+
+body.touch-ui.landscape #gameTitle {
+    display: none;
+}
+
+@media (max-height: 700px) {
+    #dpad { --dbtn: 54px; }
+}
+
+/* --- Drawer --------------------------------------------------------------- */
+
+body.touch-ui #sidebar {
+    box-sizing: border-box;
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 30;
+    width: min(360px, 88vw);
+    margin: 0;
+    border: none;
+    border-left: 1px solid #2a2a44;
+    border-radius: 0;
+    padding: calc(12px + env(safe-area-inset-top)) 16px calc(24px + env(safe-area-inset-bottom));
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    transform: translateX(100%);
+    transition: transform 0.22s ease;
+}
+
+body.touch-ui.drawer-open #sidebar {
+    transform: translateX(0);
+}
+
+body.touch-ui.drawer-open #scrim {
+    display: block;
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 20;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+body.touch-ui #drawerClose {
+    display: block;
+    margin: 0 0 8px auto;
+}
+
+/* Comfortable tap targets; 16px keeps iOS from zooming in on focus. */
+body.touch-ui .tab {
+    padding: 12px 10px;
+    font-size: 16px;
+}
+
+body.touch-ui #settings label {
+    margin: 12px 0;
+    font-size: 15px;
+}
+
+body.touch-ui #settings input,
+body.touch-ui #settings select {
+    min-height: 36px;
+    font-size: 16px;
+}
+
+body.touch-ui #settings input[type="number"] {
+    width: 84px;
+}
+
+body.touch-ui #controls .button {
+    padding: 14px 20px;
+}
+
+/* The legend moves into the drawer on phone-sized screens. */
+body.touch-ui.compact #legendSlot {
+    display: block;
+    margin-top: 20px;
+    border-top: 1px solid #2a2a44;
+    padding-top: 12px;
+}
+
+.drawer-heading {
+    margin: 0 0 8px;
+    font-size: 16px;
+    color: #eaeaff;
+}
+
+#legendSlot #legend {
+    margin: 0;
+    text-align: left;
+}
+
+#legendSlot .legend-item {
+    display: flex;
+    margin: 8px 0;
+}

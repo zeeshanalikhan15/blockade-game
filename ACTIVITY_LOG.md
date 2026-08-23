@@ -29,3 +29,13 @@ Chronological record of every activity performed on this repo. Append in sequenc
 23. **Centered the title over the grid** — moved the `<h1>` inside the left column so it centers above the canvas rather than the whole page.
 24. **Set up GitHub Pages deployment** — added `.github/workflows/deploy.yml` that copies `src/` to a `prod` branch on every push to `main`, and configured Pages to serve from `prod` (mirroring the `zeeshanalikhan15.github.io` repo).
 25. **Added a "Play it live" link** to the README pointing at the GitHub Pages URL.
+
+## 2026-08-23
+
+26. **Made the game mobile-responsive** — new `src/mobile.js` + responsive CSS in `src/style.css`:
+    - **Desktop** — unchanged (full board, sidebar, keyboard).
+    - **Tablet** — the whole board scales down to fit, plus an on-screen d-pad.
+    - **Phone** — cells stay ~38px readable; the canvas becomes a window onto the board that follows the player and stops at the boundaries (moving around a map instead of showing it all at once), with swipe-to-move and a floating d-pad in landscape.
+    - **Menu drawer** — on small screens the sidebar (scores + settings) becomes a slide-in drawer opened from a top-bar ☰ button; it pauses the game while open and never covers the play area during play. The legend moves into the drawer so it doesn't eat vertical space.
+    - **Retina** — the canvas backing store scales with `devicePixelRatio` (capped at 2×) for crisp rendering.
+27. **Verified in a real browser** — drove headless Windows Chrome against the served game at six viewport sizes (desktop, iPad landscape/portrait, iPhone portrait/landscape, small Android) and asserted the layout math, camera clamping, d-pad press/hold/repeat, drawer pause/resume, restart-from-drawer, and that the player is drawn at the exact screen coordinate the camera computes (pixel sampling), including the retina path.
