@@ -19,7 +19,7 @@ Each theme is a single object exposing `name`, `legend`, `render(ctx, state)`, `
 - **Collect pickups** (+10) and **bonuses** (+50).
 - Grab a **power-up** to gain charges that **destroy obstacles** instead of crashing.
 - Hit an obstacle without a charge and it's game over.
-- On a phone the board is a window that **follows you** up to the edges — a pulsing **chevron** points to the nearest pickup, and the ☰ button opens scores & settings in a side drawer.
+- On a phone the board is a window that **follows you** up to the edges — a pulsing **chevron** points to the nearest *off-screen* pickup, and the ☰ button opens scores & settings in a side drawer.
 
 ## Getting started
 

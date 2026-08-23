@@ -200,32 +200,45 @@ function drawEdgeHints(ctx) {
     if (VIEW.camY < worldH - VIEW.h - 1) fade(0, VIEW.h, 0, VIEW.h - f, 0, VIEW.h - f, VIEW.w, f);
 }
 
-// Point the way to the nearest pick-up when the board is bigger than the
-// window (phone view). Green pick-ups ("astronauts") are easy to lose off the
-// edge, so draw a small pulsing chevron beside the player facing the nearest.
+// Point the way to a collectible only while it is off-screen (phone view).
+// Green pick-ups, the blue bonus, and the yellow bonus are all worth seeking,
+// so whichever of those is nearest — and currently outside the window — gets a
+// small pulsing chevron beside the player. Once everything is on-screen the
+// hint hides.
 function drawPickupHint(ctx) {
     if (!VIEW.camera || !running || paused) return;
-    if (typeof items === 'undefined' || items.size === 0) return;
 
+    const targets = [];
+    if (typeof items !== 'undefined') {
+        items.forEach(function (k) {
+            const xy = k.split(',').map(Number);
+            targets.push({ x: xy[0], y: xy[1] });
+        });
+    }
+    if (blueBonus) targets.push({ x: blueBonus.x, y: blueBonus.y });
+    if (yellowBonus) targets.push({ x: yellowBonus.x, y: yellowBonus.y });
+    if (targets.length === 0) return;
+
+    const s = VIEW.scale;
+    const cell = CELL * s;
+    const px = (player.x + 0.5) * cell - VIEW.camX;
+    const py = (player.y + 0.5) * cell - VIEW.camY;
+
+    // Nearest target whose centre is outside the visible window.
     let best = null;
     let bestD = Infinity;
-    items.forEach(function (k) {
-        const xy = k.split(',').map(Number);
-        const dx = xy[0] - player.x;
-        const dy = xy[1] - player.y;
+    targets.forEach(function (t) {
+        const tx = (t.x + 0.5) * cell - VIEW.camX;
+        const ty = (t.y + 0.5) * cell - VIEW.camY;
+        if (tx >= 0 && tx <= VIEW.w && ty >= 0 && ty <= VIEW.h) return; // on-screen
+        const dx = tx - px;
+        const dy = ty - py;
         const d = dx * dx + dy * dy;
-        if (d < bestD) { bestD = d; best = { x: xy[0], y: xy[1] }; }
+        if (d < bestD) { bestD = d; best = { tx, ty }; }
     });
     if (!best) return;
 
-    const s = VIEW.scale;
-    const px = (player.x + 0.5) * CELL * s - VIEW.camX;
-    const py = (player.y + 0.5) * CELL * s - VIEW.camY;
-    const ang = Math.atan2(
-        (best.y + 0.5) * CELL * s - VIEW.camY - py,
-        (best.x + 0.5) * CELL * s - VIEW.camX - px
-    );
-
+    const ang = Math.atan2(best.ty - py, best.tx - px);
     const off = CELL * s * 0.85;
     const cx = px + Math.cos(ang) * off;
     const cy = py + Math.sin(ang) * off;
